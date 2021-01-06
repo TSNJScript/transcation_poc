@@ -1,5 +1,6 @@
 import express from "express";
 import mongo from "./loaders/mongoose";
+import TransactionRepo from "./repositories/transactions.repository";
 import UserRepo from "./repositories/users.repository";
 import WalletRepo from "./repositories/wallets.repository";
 
@@ -22,6 +23,17 @@ app.post("/wallets", async (req, res) => {
   const result = await WalletRepo.save(payload);
   return res.send(result);
 });
+
+app.post("/transactions", async (req, res) => {
+  const payload = {
+    from: req.body.from,
+    to: req.body.to,
+    amount: req.body.amount,
+  };
+  const result = await TransactionRepo.save(payload);
+  return res.send(result);
+});
+
 app.listen(3000, () => {
   console.log("Server listening on port: 3000");
 });

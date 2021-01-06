@@ -10,8 +10,10 @@ const save = async (
   currentTranscation.from = mongoose.Types.ObjectId(payload.from);
   currentTranscation.to = mongoose.Types.ObjectId(payload.to);
   currentTranscation.amount = payload.amount;
-  return await currentTranscation.save();
+  return await currentTranscation.save({ session: session });
 };
 
-
-export default { save };
+const getSession = async () => {
+  return await Transcation.startSession();
+};
+export default { save, getSession };

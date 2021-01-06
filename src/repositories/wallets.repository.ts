@@ -1,6 +1,6 @@
 import mongodb from "mongodb";
 import mongoose from "mongoose";
-import Wallet, { IWalletPayload } from "../models/wallet.model";
+import Wallet, { IWallet, IWalletPayload } from "../models/wallet.model";
 
 const save = async (
   payload: IWalletPayload,
@@ -15,12 +15,19 @@ const save = async (
   }
 
   wallet.balance = payload.balance;
-  return await wallet.save();
+  return await wallet.save({ session: session });
 };
 
 const getWalletByOwner = async (id: string) => {
   const owner = mongoose.Types.ObjectId(id);
   const result = await Wallet.findOne({ owner });
-  return result?.toJSON();
+  if (!result) {
+    throw new Error("repository-error/wallets/wallet-not-found");
+  }
+  return result.toObject();
 };
-export default { save, getWalletByOwner };
+
+const getSession = async () => {
+  return await Wallet.startSession();
+};
+export default { save, getWalletByOwner, getSession };
