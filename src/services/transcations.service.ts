@@ -3,6 +3,7 @@ import TransactionRepo from "../repositories/transactions.repository";
 
 const createTranscation = async (from: string, to: string, amount: number) => {
   const session = await TransactionRepo.getSession();
+  session.startTransaction();
   try {
     const fromWallet = await WalletService.deductFromWallet(from, amount, {
       session: session,

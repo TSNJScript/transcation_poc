@@ -20,7 +20,7 @@ const save = async (
 
 const getWalletByOwner = async (id: string) => {
   const owner = mongoose.Types.ObjectId(id);
-  const result = await Wallet.findOne({ owner });
+  const result = await Wallet.findOne({ owner: id }).exec();
   if (!result) {
     throw new Error("repository-error/wallets/wallet-not-found");
   }

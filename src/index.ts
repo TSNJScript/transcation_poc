@@ -1,6 +1,6 @@
 import express from "express";
 import mongo from "./loaders/mongoose";
-import TransactionRepo from "./repositories/transactions.repository";
+import TransactionService from "./services/transcations.service";
 import UserRepo from "./repositories/users.repository";
 import WalletRepo from "./repositories/wallets.repository";
 
@@ -25,12 +25,11 @@ app.post("/wallets", async (req, res) => {
 });
 
 app.post("/transactions", async (req, res) => {
-  const payload = {
-    from: req.body.from,
-    to: req.body.to,
-    amount: req.body.amount,
-  };
-  const result = await TransactionRepo.save(payload);
+  const result = await TransactionService.createTranscation(
+    req.body.from,
+    req.body.to,
+    req.body.amount
+  );
   return res.send(result);
 });
 
