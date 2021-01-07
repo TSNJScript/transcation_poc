@@ -1,25 +1,47 @@
-import WalletService from "./wallets.service";
-import TransactionRepo from "../repositories/transactions.repository";
+import Transaction from "../models/transaction.model";
+import Wallet from "../models/wallet.model";
+import mongodb from "mongodb";
 
 const createTranscation = async (from: string, to: string, amount: number) => {
-  const session = await TransactionRepo.getSession();
-  session.startTransaction();
+  const session = await Wallet.startSession();
+
   try {
-    const fromWallet = await WalletService.deductFromWallet(from, amount, {
-      session: session,
+    session.startTransaction();
+
+    await Wallet.updateOne(
+      { owner: from },
+      { $inc: { balance: -Math.abs(amount) } },
+      { session: session }
+    );
+
+    const senderWallet = await Wallet.findOne({ owner: from }).session(session);
+
+    if (!senderWallet || senderWallet.balance < 0) {
+      throw new Error("service-error/insufficient-fund");
+    }
+
+    await Wallet.updateOne(
+      { owner: to },
+      { $inc: { balance: Math.abs(amount) } },
+      { session: session }
+    );
+
+    const transaction = await Transaction.create({
+      from: from,
+      to: to,
+      amount: amount,
     });
 
-    const transaction = await TransactionRepo.save(
-      { from: from, to: to, amount: amount },
-      session
-    );
-  } catch (e) {
-    session.abortTransaction();
-    throw e;
-  }
+    if (!transaction) {
+      throw new Error("service-error/failed-to-create-transaction");
+    }
 
-  const result = session.commitTransaction();
-  return result;
+    await session.commitTransaction();
+  } catch (e) {
+    await session.abortTransaction();
+    console.error(e);
+  }
+  session.endSession();
 };
 
 export default {
